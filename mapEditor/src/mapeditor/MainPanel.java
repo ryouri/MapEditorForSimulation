@@ -43,9 +43,10 @@ public class MainPanel extends JPanel
 
     // マップチップパレット
     private PaletteDialog paletteDialog;
+    private AutoTilePaletteDialog autoTileDialog;
     private Image[] mapChipImages;
 
-    public MainPanel(PaletteDialog paletteDialog) {
+    public MainPanel(PaletteDialog paletteDialog, AutoTilePaletteDialog autoTileDialog) {
         setPreferredSize(new Dimension(WIDTH, HEIGHT));
 
         addMouseListener(this);
@@ -53,8 +54,10 @@ public class MainPanel extends JPanel
 
         // パレットダイアログ
         this.paletteDialog = paletteDialog;
+        this.autoTileDialog = autoTileDialog;
         mapChipImages = paletteDialog.getMapChipImages();
 
+        
         // マップを初期化
         initMap(16, 16);
     }
