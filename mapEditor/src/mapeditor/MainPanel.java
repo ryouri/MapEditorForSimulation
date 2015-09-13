@@ -2,7 +2,6 @@ package mapeditor;
 
 import java.awt.Dimension;
 import java.awt.Graphics;
-import java.awt.Image;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
@@ -44,7 +43,6 @@ public class MainPanel extends JPanel
     // マップチップパレット
     private PaletteDialog paletteDialog;
     private AutoTilePaletteDialog autoTileDialog;
-    private Image[] mapChipImages;
 
     public MainPanel(PaletteDialog paletteDialog, AutoTilePaletteDialog autoTileDialog) {
         setPreferredSize(new Dimension(WIDTH, HEIGHT));
@@ -55,9 +53,7 @@ public class MainPanel extends JPanel
         // パレットダイアログ
         this.paletteDialog = paletteDialog;
         this.autoTileDialog = autoTileDialog;
-        mapChipImages = paletteDialog.getMapChipImages();
 
-        
         // マップを初期化
         initMap(16, 16);
     }
@@ -158,7 +154,12 @@ public class MainPanel extends JPanel
         // map[][]に保存されているマップチップ番号をもとに画像を描画する
         for (int i = 0; i < row; i++) {
             for (int j = 0; j < col; j++) {
-                g.drawImage(mapChipImages[map[i][j]], j * CHIP_SIZE, i * CHIP_SIZE, null);
+            	int chip_id = map[i][j];
+            	if (autoTileDialog.isAutoTile(chip_id)) {
+                    g.drawImage(autoTileDialog.getMapChipImage(chip_id), j * CHIP_SIZE, i * CHIP_SIZE, null);
+            	}else {
+            		g.drawImage(paletteDialog.getMapChipImage(chip_id), j * CHIP_SIZE, i * CHIP_SIZE, null);
+            	}
             }
         }
     }
@@ -171,12 +172,20 @@ public class MainPanel extends JPanel
         int x = e.getX() / CHIP_SIZE;
         int y = e.getY() / CHIP_SIZE;
 
-        System.out.println("MainPanel map[y][x] = " + map[y][x]);
+        System.out.println("Before MainPanel map[y][x] = " + map[y][x]);
         // パレットから取得した番号をセット
         if (x >= 0 && x < col && y >= 0 && y < row) {
-            map[y][x] = paletteDialog.getSelectedMapChipNo();
-            System.out.println("MainPanel map[y][x] = " + map[y][x]);
+        	if (paletteDialog.lastSelected){
+        		map[y][x] = paletteDialog.getSelectedMapChipNo();
+        	} else if (autoTileDialog.lastSelected) {
+        		map[y][x] = autoTileDialog.getSelectedMapChipNo();
+        	} else {
+        		System.out.println("例外投げるべきだけどprintしちゃう！\n"
+        				+ "マップチップ選択フラグ(paletteかauto tile paletetか)がおかしい！！");;
+        	}
+
         }
+        System.out.println("After  MainPanel map[y][x] = " + map[y][x]);
 
         repaint();
     }
@@ -203,7 +212,14 @@ public class MainPanel extends JPanel
 
         // パレットから取得した番号をセット
         if (x >= 0 && x < col && y >= 0 && y < row) {
-            map[y][x] = paletteDialog.getSelectedMapChipNo();
+        	if (paletteDialog.lastSelected){
+        		map[y][x] = paletteDialog.getSelectedMapChipNo();
+        	} else if (autoTileDialog.lastSelected) {
+        		map[y][x] = autoTileDialog.getSelectedMapChipNo();
+        	} else {
+        		System.out.println("例外投げるべきだけどprintしちゃう！\n"
+        				+ "マップチップ選択フラグ(paletteかauto tile paletetか)がおかしい！！");;
+        	}
         }
 
         repaint();

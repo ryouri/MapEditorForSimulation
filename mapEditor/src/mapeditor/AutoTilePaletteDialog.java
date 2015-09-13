@@ -29,6 +29,9 @@ public class AutoTilePaletteDialog extends JDialog {
     // マップチップIDのオフセット
     private static final int OFFSET_OF_ID = 2000;
 
+    // 最後に選択されてるかどうか（PaletteDialogとくらべて）
+    public static boolean lastSelected;
+
     // マップチップのイメージ
     private Image mapChipImage;
     // マップチップをチップごとに分割したイメージ
@@ -58,15 +61,15 @@ public class AutoTilePaletteDialog extends JDialog {
      * @return 選択されているマップチップ番号
      */
     public int getSelectedMapChipNo() {
-        return selectedMapChipNo;
+        return selectedMapChipNo + OFFSET_OF_ID;
     }
 
     /**
-     * 分割されたマップチップイメージを返す
-     * @return 分割されたマップチップイメージ
+     * 指定されたIDのマップチップイメージを返す
+     * @return マップチップイメージ
      */
-    public Image[] getMapChipImages() {
-        return mapChipImages;
+    public Image getMapChipImage(int id) {
+        return mapChipImages[id - OFFSET_OF_ID];
     }
 
     /**
@@ -76,12 +79,14 @@ public class AutoTilePaletteDialog extends JDialog {
     	String path = "image/auto_tile/";
     	int file_num = new File(path).list().length;
     	mapChipImage = createImage(WIDTH, HEIGHT);
+    	mapChipImages = new Image[NUM_CHIPS];
 
         // 先頭のマップチップだけをmapChipImageに描画
         for (int i = 0; i < file_num; i++) {
         	int id = OFFSET_OF_ID + i;
             ImageIcon icon = new ImageIcon(path+id+".png");
             Image image = icon.getImage();
+            mapChipImages[i] = image;
 
             // 書き込む
             int x = i % NUM_CHIPS_IN_ROW;
@@ -118,7 +123,11 @@ public class AutoTilePaletteDialog extends JDialog {
                     }
 
                     selectedMapChipNo = mapChipNo;
-                    System.out.println("MainPanel map[y][x] = " + selectedMapChipNo);
+                    System.out.println("select map chip (auto tile): " + selectedMapChipNo);
+
+                    // 選択フラグの更新
+                    lastSelected = true;
+                    PaletteDialog.lastSelected = false;
 
                     // 選択されているマップチップを枠で囲む
                     repaint();

@@ -33,6 +33,9 @@ public class PaletteDialog extends JDialog {
     private static final int NUM_CHIPS = 640;
     private static final int NUM_CHIPS_IN_ROW = 20;
 
+    // 最後に選択されてるかどうか（AutoTilePaletteDialogとくらべて）
+    public static boolean lastSelected;
+
     // マップチップのイメージ
     private Image mapChipImage;
     // マップチップをチップごとに分割したイメージ
@@ -66,11 +69,11 @@ public class PaletteDialog extends JDialog {
     }
 
     /**
-     * 分割されたマップチップイメージを返す
-     * @return 分割されたマップチップイメージ
+     * 指定されたIDのマップチップイメージを返す
+     * @return マップチップイメージ
      */
-    public Image[] getMapChipImages() {
-        return mapChipImages;
+    public Image getMapChipImage(int id) {
+        return mapChipImages[id];
     }
 
     /**
@@ -114,7 +117,11 @@ public class PaletteDialog extends JDialog {
                     }
 
                     selectedMapChipNo = mapChipNo;
-                    System.out.println("MainPanel map[y][x] = " + selectedMapChipNo);
+                    System.out.println("select map chip: " + selectedMapChipNo);
+
+                    // 選択フラグの更新
+                    lastSelected = true;
+                    AutoTilePaletteDialog.lastSelected = false;
 
                     // 選択されているマップチップを枠で囲む
                     repaint();
