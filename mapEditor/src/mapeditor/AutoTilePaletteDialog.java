@@ -96,6 +96,10 @@ public class AutoTilePaletteDialog extends JDialog {
 
     }
 
+    public boolean isAutoTile(int id) {
+    	return id >= OFFSET_OF_ID;
+    }
+
     // パレットパネル
     private class PalettePanel extends JPanel {
         public PalettePanel() {
