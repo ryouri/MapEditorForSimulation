@@ -1,5 +1,7 @@
 package mapeditor;
 
+import java.awt.Graphics;
+import java.awt.Image;
 import java.awt.Point;
 
 public class AutoTileUtil {
@@ -39,7 +41,6 @@ public class AutoTileUtil {
 		return result;
 	}
 
-
 	/**
 	 * 縦, 横, 斜めの情報からTileIDを返す
 	 * 返すIDは(オートタイルのマップチップの)上から順番に0, 1, 2, 3, 4
@@ -64,5 +65,22 @@ public class AutoTileUtil {
 		else {
 			return 4;
 		}
+	}
+	
+	public static Image getAutoTileImage(Image wholeImage, Image autoTileImage, Point[][] drawInfo) {
+		int half_size = autoTileImage.getWidth(null) / 2;
+		
+		Graphics g = autoTileImage.getGraphics();
+		for (int i = 0; i < 2; i++) {
+			for (int j = 0; j < 2; j++) {
+				int dx1 = j * half_size; int dx2 = dx1 + half_size;
+				int dy1 = i * half_size; int dy2 = dy1 + half_size;
+				int sx1 = drawInfo[i][j].x * half_size; int sx2 = sx1 + half_size;
+				int sy1 = drawInfo[i][j].y * half_size; int sy2 = sy1 + half_size;
+				
+				g.drawImage(wholeImage, dx1, dy1, dx2, dy2, sx1, sy1, sx2, sy2, null);
+			}
+		}
+		return autoTileImage;
 	}
 }
