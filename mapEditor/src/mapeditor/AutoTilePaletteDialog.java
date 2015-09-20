@@ -7,9 +7,12 @@ import java.awt.Image;
 import java.awt.Point;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 
+import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
@@ -107,8 +110,10 @@ public class AutoTilePaletteDialog extends JDialog {
         			{left_down, down, right_down} 
         		};
         		Image wholeImage = mapChipImages[chip_id - OFFSET_OF_ID];
-        		Image autoTile = createImage(wholeImage.getWidth(null), wholeImage.getHeight(null) / 5);
-        		Image drawAutoTileImage = AutoTileUtil.getAutoTileImage(wholeImage, autoTile,
+    			BufferedImage bwholeImage = new BufferedImage(wholeImage.getWidth(null), wholeImage.getHeight(null), BufferedImage.TYPE_INT_ARGB_PRE);
+    			bwholeImage.createGraphics().drawImage(wholeImage, 0, 0, null);
+    			BufferedImage autoTile = new BufferedImage(wholeImage.getWidth(null), wholeImage.getHeight(null) / 5, BufferedImage.TYPE_INT_ARGB_PRE);
+        		BufferedImage drawAutoTileImage = AutoTileUtil.getAutoTileImage(bwholeImage, autoTile,
         				AutoTileUtil.aroudTileArrayToDrawTileArray(around_info));
         		imageMap.put(new Point(i, j), drawAutoTileImage);
         	}
@@ -127,8 +132,13 @@ public class AutoTilePaletteDialog extends JDialog {
 		// 先頭のマップチップだけをmapChipImageに描画
 		for (int i = 0; i < file_num; i++) {
 			int id = OFFSET_OF_ID + i;
-			ImageIcon icon = new ImageIcon(path + id + ".png");
-			Image image = icon.getImage();
+			BufferedImage image = null;
+			try {
+				image = ImageIO.read(new File(path + id + ".png"));
+			} catch (IOException e) {
+				// TODO 自動生成された catch ブロック
+				e.printStackTrace();
+			}
 			// ここでauto tile全体のimageを入れておく
 			// 後で周囲の情報をもとに抜き出す
 			mapChipImages[i] = image;

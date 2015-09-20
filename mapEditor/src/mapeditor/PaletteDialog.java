@@ -6,7 +6,11 @@ import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 
+import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
@@ -39,7 +43,7 @@ public class PaletteDialog extends JDialog {
     // マップチップのイメージ
     private Image mapChipImage;
     // マップチップをチップごとに分割したイメージ
-    private Image[] mapChipImages;
+    private BufferedImage[] mapChipImages;
 
     // 選択されているマップチップの番号
     private int selectedMapChipNo;
@@ -72,7 +76,7 @@ public class PaletteDialog extends JDialog {
      * 指定されたIDのマップチップイメージを返す
      * @return マップチップイメージ
      */
-    public Image getMapChipImage(int id) {
+    public BufferedImage getMapChipImage(int id) {
         return mapChipImages[id];
     }
 
@@ -80,14 +84,23 @@ public class PaletteDialog extends JDialog {
      * マップチップイメージをロード
      */
     private void loadImage() {
-        ImageIcon icon = new ImageIcon("image/mapchip.png");
-        mapChipImage = icon.getImage();
+    	String path = "image/mapchip.png";
+        // ImageIcon icon = new ImageIcon("image/mapchip.png");
+        // mapChipImage = icon.getImage();
+		BufferedImage image = null;
+		try {
+			image = ImageIO.read(new File(path));
+		} catch (IOException e) {
+			// TODO 自動生成された catch ブロック
+			e.printStackTrace();
+		}
+        mapChipImage = image;
 
         // マップチップごとにイメージを分割
-        mapChipImages = new Image[NUM_CHIPS];
+        mapChipImages = new BufferedImage[NUM_CHIPS];
         for (int i = 0; i < NUM_CHIPS; i++) {
             // 描画先を確保
-            mapChipImages[i] = createImage(CHIP_SIZE, CHIP_SIZE);
+    		mapChipImages[i] = new BufferedImage(CHIP_SIZE, CHIP_SIZE, BufferedImage.TYPE_INT_ARGB_PRE);
 
             // 描画先に書き込む
             int x = i % NUM_CHIPS_IN_ROW;

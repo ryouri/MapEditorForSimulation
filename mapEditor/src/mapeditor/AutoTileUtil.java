@@ -3,6 +3,7 @@ package mapeditor;
 import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.Point;
+import java.awt.image.BufferedImage;
 
 public class AutoTileUtil {
 
@@ -67,7 +68,7 @@ public class AutoTileUtil {
 		}
 	}
 	
-	public static Image getAutoTileImage(Image wholeImage, Image autoTileImage, Point[][] drawInfo) {
+	public static BufferedImage getAutoTileImage(BufferedImage wholeImage, BufferedImage autoTileImage, Point[][] drawInfo) {
 		int half_size = autoTileImage.getWidth(null) / 2;
 	
 		Graphics g = autoTileImage.getGraphics();

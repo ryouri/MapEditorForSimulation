@@ -1,7 +1,9 @@
 package mapeditor;
 
+import java.awt.AlphaComposite;
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
@@ -33,12 +35,10 @@ public class MainPanel extends JPanel
 
     // チップセットのサイズ（単位：ピクセル）
     public static final int CHIP_SIZE = 32;
-
-    // マップ
-    private int[][] map;
-    // マップの大きさ（単位：マス）
-    private int row;
-    private int col;
+    
+    // レイヤー
+    private LayerPanel[] layers;
+    private int current_layer;
 
     // マップチップパレット
     private PaletteDialog paletteDialog;
@@ -54,57 +54,49 @@ public class MainPanel extends JPanel
         this.paletteDialog = paletteDialog;
         this.autoTileDialog = autoTileDialog;
 
-        // マップを初期化
-        initMap(16, 16);
+        this.setLayout(null);
+        // レイヤーを初期化
+        initLayer(16, 16, 3);
+    }
+    
+    public void initLayer(int r, int c, int l) {
+    	current_layer = 1;
+    	layers = new LayerPanel[l];
+    	for (int i = 0; i < l; i++) {
+    		LayerPanel layer = new LayerPanel(r, c, paletteDialog, autoTileDialog);
+    		layer.setBounds(0, 0, WIDTH, HEIGHT);
+    		this.add(layer);
+    		layers[i] = layer;
+    	}
     }
 
-    /**
-     * マップを初期化する
-     * @param row 行数
-     * @param col 列数
-     */
-    public void initMap(int r, int c) {
-        row = r;
-        col = c;
-        map = new int[r][c];
-
-        // パレットで選択されているマップチップの番号を取得
-        int mapChipNo = paletteDialog.getSelectedMapChipNo();
-
-        // そのマップチップでマップを埋めつくす
-        for (int i = 0; i < r; i++) {
-            for (int j = 0; j < c; j++) {
-                map[i][j] = mapChipNo;
-            }
-        }
-    }
 
     /**
      * マップをファイルから読み込む
      * @param mapFile
      */
     public void loadMap(File mapFile) {
-        try {
-            FileInputStream in = new FileInputStream(mapFile);
-            // 行数・列数を読み込む
-            row = in.read();
-            col = in.read();
-            // マップを読み込む
-            map = new int[row][col];
-            for (int i = 0; i < row; i++) {
-                for (int j = 0; j < col; j++) {
-                	byte[] b = new byte[4];
-                	in.read(b, 0, 4);
-                    map[i][j] = fromBytes(b);
-                }
-            }
-            in.close();
-
-            // パネルの大きさをマップの大きさと同じにする
-            setPreferredSize(new Dimension(col * CHIP_SIZE, row * CHIP_SIZE));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+//        try {
+//            FileInputStream in = new FileInputStream(mapFile);
+//            // 行数・列数を読み込む
+//            row = in.read();
+//            col = in.read();
+//            // マップを読み込む
+//            map = new int[row][col];
+//            for (int i = 0; i < row; i++) {
+//                for (int j = 0; j < col; j++) {
+//                	byte[] b = new byte[4];
+//                	in.read(b, 0, 4);
+//                    map[i][j] = fromBytes(b);
+//                }
+//            }
+//            in.close();
+//
+//            // パネルの大きさをマップの大きさと同じにする
+//            setPreferredSize(new Dimension(col * CHIP_SIZE, row * CHIP_SIZE));
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
     }
 
     /**
@@ -129,39 +121,39 @@ public class MainPanel extends JPanel
      * @param mapFile マップファイル
      */
     public void saveMap(File mapFile) {
-        // マップはバイナリファイルにする
-        // マップの1マスを1バイトとする
-        try {
-            FileOutputStream out = new FileOutputStream(mapFile);
-            // 行数・列数を書き込む
-            out.write(row);
-            out.write(col);
-            // マップを書き込む
-            for (int i = 0; i < row; i++) {
-                for (int j = 0; j < col; j++) {
-                    out.write(fromInt(map[i][j]));
-                }
-            }
-            out.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+//        // マップはバイナリファイルにする
+//        // マップの1マスを1バイトとする
+//        try {
+//            FileOutputStream out = new FileOutputStream(mapFile);
+//            // 行数・列数を書き込む
+//            out.write(row);
+//            out.write(col);
+//            // マップを書き込む
+//            for (int i = 0; i < row; i++) {
+//                for (int j = 0; j < col; j++) {
+//                    out.write(fromInt(map[i][j]));
+//                }
+//            }
+//            out.close();
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
     }
 
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
 
-        // map[][]に保存されているマップチップ番号をもとに画像を描画する
-        for (int i = 0; i < row; i++) {
-            for (int j = 0; j < col; j++) {
-            	int chip_id = map[i][j];
-            	if (autoTileDialog.isAutoTile(chip_id)) {
-                    g.drawImage(autoTileDialog.getMapChipImage(i, j), j * CHIP_SIZE, i * CHIP_SIZE, null);
-            	}else {
-            		g.drawImage(paletteDialog.getMapChipImage(chip_id), j * CHIP_SIZE, i * CHIP_SIZE, null);
-            	}
-            }
-        }
+        // // map[][]に保存されているマップチップ番号をもとに画像を描画する
+        // for (int i = 0; i < row; i++) {
+        //     for (int j = 0; j < col; j++) {
+        //     	int chip_id = map[i][j];
+        //     	if (autoTileDialog.isAutoTile(chip_id)) {
+        //             g.drawImage(autoTileDialog.getMapChipImage(i, j), j * CHIP_SIZE, i * CHIP_SIZE, null);
+        //     	}else {
+        //     		g.drawImage(paletteDialog.getMapChipImage(chip_id), j * CHIP_SIZE, i * CHIP_SIZE, null);
+        //     	}
+        //     }
+        // }
     }
 
     /**
@@ -171,25 +163,12 @@ public class MainPanel extends JPanel
         // マウスポインタの座標から座標（マス）を求める
         int x = e.getX() / CHIP_SIZE;
         int y = e.getY() / CHIP_SIZE;
-
-        System.out.println("Before MainPanel map[y][x] = " + map[y][x]);
-        // パレットから取得した番号をセット
-        if (x >= 0 && x < col && y >= 0 && y < row) {
-        	if (paletteDialog.lastSelected){
-        		map[y][x] = paletteDialog.getSelectedMapChipNo();
-        	} else if (autoTileDialog.lastSelected) {
-        		map[y][x] = autoTileDialog.getSelectedMapChipNo();
-        	} else {
-        		System.out.println("例外投げるべきだけどprintしちゃう！\n"
-        				+ "マップチップ選択フラグ(paletteかauto tile paletetか)がおかしい！！");;
-        	}
-        	// 周辺のautoTileを更新
-        	autoTileDialog.updateMapChipImage(y, x, map);
-
-        }
-        System.out.println("After  MainPanel map[y][x] = " + map[y][x]);
+        
+        System.out.println("Current Layer:" + current_layer);
+        layers[current_layer].setIdOnMap(y, x);
 
         repaint();
+        layers[current_layer].repaint();
     }
 
     public void mousePressed(MouseEvent e) {
@@ -212,21 +191,11 @@ public class MainPanel extends JPanel
         int x = e.getX() / CHIP_SIZE;
         int y = e.getY() / CHIP_SIZE;
 
-        // パレットから取得した番号をセット
-        if (x >= 0 && x < col && y >= 0 && y < row) {
-        	if (paletteDialog.lastSelected){
-        		map[y][x] = paletteDialog.getSelectedMapChipNo();
-        	} else if (autoTileDialog.lastSelected) {
-        		map[y][x] = autoTileDialog.getSelectedMapChipNo();
-        	} else {
-        		System.out.println("例外投げるべきだけどprintしちゃう！\n"
-        				+ "マップチップ選択フラグ(paletteかauto tile paletetか)がおかしい！！");;
-        	}
-        	// 周辺のautoTileを更新
-        	autoTileDialog.updateMapChipImage(y, x, map);
-        }
+        System.out.println("Current Layer:" + current_layer);
+        layers[current_layer].setIdOnMap(y, x);
 
         repaint();
+        layers[current_layer].repaint();
     }
 
     public void mouseMoved(MouseEvent e) {
