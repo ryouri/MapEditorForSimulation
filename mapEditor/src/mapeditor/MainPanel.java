@@ -171,7 +171,6 @@ public class MainPanel extends JPanel
             				{left, false, right},
             				{left_down, down, right_down} 
             		};
-            		System.out.println("i:"+i+", j:"+j);
                     g.drawImage(autoTileDialog.getMapChipImage(chip_id, around_info), j * CHIP_SIZE, i * CHIP_SIZE, null);
             	}else {
             		g.drawImage(paletteDialog.getMapChipImage(chip_id), j * CHIP_SIZE, i * CHIP_SIZE, null);
