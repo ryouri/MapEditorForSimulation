@@ -156,22 +156,7 @@ public class MainPanel extends JPanel
             for (int j = 0; j < col; j++) {
             	int chip_id = map[i][j];
             	if (autoTileDialog.isAutoTile(chip_id)) {
-            		// 画面端のオートタイルは閉じるタイブ、開くタイプにするならtrue
-            		boolean edge = true;
-            		boolean left_up = i == 0 ? edge : j == 0 ? edge : chip_id != map[i-1][j-1];
-            		boolean left = j == 0 ? edge : chip_id != map[i][j-1];
-            		boolean left_down = i == row - 1 ? edge : j == 0 ? edge : chip_id != map[i+1][j-1];
-            		boolean right_up =  i == 0 ? edge : j == col - 1 ? edge : chip_id != map[i-1][j+1];
-            		boolean right =  j == col - 1 ? edge : chip_id != map[i][j+1];
-            		boolean right_down =  i == row - 1 ? edge : j == col - 1 ? edge : chip_id != map[i+1][j+1];
-            		boolean up =  i == 0 ? edge : chip_id != map[i-1][j];
-            		boolean down =  i == row - 1 ? edge : chip_id != map[i+1][j];
-            		boolean[][] around_info = {
-            				{left_up, up, right_up}, 
-            				{left, false, right},
-            				{left_down, down, right_down} 
-            		};
-                    g.drawImage(autoTileDialog.getMapChipImage(chip_id, around_info), j * CHIP_SIZE, i * CHIP_SIZE, null);
+                    g.drawImage(autoTileDialog.getMapChipImage(i, j), j * CHIP_SIZE, i * CHIP_SIZE, null);
             	}else {
             		g.drawImage(paletteDialog.getMapChipImage(chip_id), j * CHIP_SIZE, i * CHIP_SIZE, null);
             	}
@@ -198,6 +183,8 @@ public class MainPanel extends JPanel
         		System.out.println("例外投げるべきだけどprintしちゃう！\n"
         				+ "マップチップ選択フラグ(paletteかauto tile paletetか)がおかしい！！");;
         	}
+        	// 周辺のautoTileを更新
+        	autoTileDialog.updateMapChipImage(y, x, map);
 
         }
         System.out.println("After  MainPanel map[y][x] = " + map[y][x]);
@@ -235,6 +222,8 @@ public class MainPanel extends JPanel
         		System.out.println("例外投げるべきだけどprintしちゃう！\n"
         				+ "マップチップ選択フラグ(paletteかauto tile paletetか)がおかしい！！");;
         	}
+        	// 周辺のautoTileを更新
+        	autoTileDialog.updateMapChipImage(y, x, map);
         }
 
         repaint();

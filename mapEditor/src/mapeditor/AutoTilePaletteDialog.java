@@ -8,6 +8,7 @@ import java.awt.Point;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
+import java.util.HashMap;
 
 import javax.swing.ImageIcon;
 import javax.swing.JDialog;
@@ -37,6 +38,8 @@ public class AutoTilePaletteDialog extends JDialog {
 	private Image mapChipImage;
 	// マップチップをチップごとに分割したイメージ
 	private Image[] mapChipImages;
+	// mapと対応するautoTileを並べたhashmap
+	private HashMap<Point, Image> imageMap;
 
 	// 選択されているマップチップの番号
 	private int selectedMapChipNo;
@@ -53,6 +56,7 @@ public class AutoTilePaletteDialog extends JDialog {
 		getContentPane().add(palettePanel);
 		pack();
 
+		imageMap = new HashMap<Point, Image>();
 		// マップチップイメージをロード
 		loadImage();
 	}
@@ -71,13 +75,45 @@ public class AutoTilePaletteDialog extends JDialog {
 	 * 
 	 * @return マップチップイメージ
 	 */
-	public Image getMapChipImage(int id, boolean[][] aroundInfo) {
-		Image wholeImage = mapChipImages[id - OFFSET_OF_ID];
-		Image autoTile = createImage(wholeImage.getWidth(null), wholeImage.getHeight(null) / 5);
-		return AutoTileUtil.getAutoTileImage(wholeImage, autoTile,
-				AutoTileUtil.aroudTileArrayToDrawTileArray(aroundInfo));
+	public Image getMapChipImage(int i, int j) {
+		return imageMap.get(new Point(i, j));
 	}
-
+	
+	public void updateMapChipImage(int i, int j, int[][] map) {
+		// 画面端のオートタイルは閉じるタイブ、開くタイプにするならtrue
+        boolean edge = true;
+        int row = map.length;
+        int col = map[0].length;
+        int centeri = i;
+        int centerj = j;
+        for (i = centeri-1; i <= centeri+1; i++){
+        	for (j = centerj-1; j <= centerj+1; j++){
+        		int chip_id = map[i][j];
+        		// 注目してる map chip が範囲外, auto tileでない, ならスキップ
+        		if (i < 0 || i >= row || j < 0 || j >= col || chip_id < OFFSET_OF_ID){ continue; }
+        		
+        		boolean left_up = i == 0 ? edge : j == 0 ? edge : chip_id != map[i-1][j-1];
+        		boolean left = j == 0 ? edge : chip_id != map[i][j-1];
+        		boolean left_down = i == row - 1 ? edge : j == 0 ? edge : chip_id != map[i+1][j-1];
+        		boolean right_up =  i == 0 ? edge : j == col - 1 ? edge : chip_id != map[i-1][j+1];
+        		boolean right =  j == col - 1 ? edge : chip_id != map[i][j+1];
+        		boolean right_down =  i == row - 1 ? edge : j == col - 1 ? edge : chip_id != map[i+1][j+1];
+        		boolean up =  i == 0 ? edge : chip_id != map[i-1][j];
+        		boolean down =  i == row - 1 ? edge : chip_id != map[i+1][j];
+        		boolean[][] around_info = {
+        			{left_up, up, right_up}, 
+        			{left, false, right},
+        			{left_down, down, right_down} 
+        		};
+        		Image wholeImage = mapChipImages[chip_id - OFFSET_OF_ID];
+        		Image autoTile = createImage(wholeImage.getWidth(null), wholeImage.getHeight(null) / 5);
+        		Image drawAutoTileImage = AutoTileUtil.getAutoTileImage(wholeImage, autoTile,
+        				AutoTileUtil.aroudTileArrayToDrawTileArray(around_info));
+        		imageMap.put(new Point(i, j), drawAutoTileImage);
+        	}
+        }
+	}
+	
 	/**
 	 * マップチップイメージをロード
 	 */

@@ -60,11 +60,9 @@ public class AutoTileUtil {
 			return 2;
 		}
 		else if (diagonal) {
-			System.out.println('3');
 			return 3;
 		}
 		else {
-			System.out.println('4');
 			return 4;
 		}
 	}
