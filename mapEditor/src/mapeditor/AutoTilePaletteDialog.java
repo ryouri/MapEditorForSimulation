@@ -88,9 +88,10 @@ public class AutoTilePaletteDialog extends JDialog {
         int centerj = j;
         for (i = centeri-1; i <= centeri+1; i++){
         	for (j = centerj-1; j <= centerj+1; j++){
-        		int chip_id = map[i][j];
         		// 注目してる map chip が範囲外, auto tileでない, ならスキップ
-        		if (i < 0 || i >= row || j < 0 || j >= col || chip_id < OFFSET_OF_ID){ continue; }
+        		if (i < 0 || i >= row || j < 0 || j >= col){ continue; }
+        		int chip_id = map[i][j];
+        		if (chip_id < OFFSET_OF_ID){ continue; }
         		
         		boolean left_up = i == 0 ? edge : j == 0 ? edge : chip_id != map[i-1][j-1];
         		boolean left = j == 0 ? edge : chip_id != map[i][j-1];
