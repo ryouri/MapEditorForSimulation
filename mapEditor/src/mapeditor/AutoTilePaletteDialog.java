@@ -73,9 +73,6 @@ public class AutoTilePaletteDialog extends JDialog {
 	 */
 	public Image getMapChipImage(int id, boolean[][] aroundInfo) {
 		Image wholeImage = mapChipImages[id - OFFSET_OF_ID];
-		// System.out.println(aroundInfo[0][0] +", "+ aroundInfo[0][1]+", "+ aroundInfo[0][2]+"\n"+
-		// 				   aroundInfo[1][0] +", "+ aroundInfo[1][1]+", "+ aroundInfo[1][2]+"\n"+
-		// 				   aroundInfo[2][0] +", "+ aroundInfo[2][1]+", "+ aroundInfo[2][2]+"\n");
 		Image autoTile = createImage(wholeImage.getWidth(null), wholeImage.getHeight(null) / 5);
 		return AutoTileUtil.getAutoTileImage(wholeImage, autoTile,
 				AutoTileUtil.aroudTileArrayToDrawTileArray(aroundInfo));

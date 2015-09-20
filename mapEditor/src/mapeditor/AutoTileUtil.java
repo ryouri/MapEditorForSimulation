@@ -20,7 +20,7 @@ public class AutoTileUtil {
 		boolean left_down = aroundTileArray[2][0];
 		boolean right_up = aroundTileArray[0][2];
 		boolean right_down = aroundTileArray[2][2];
-
+		
 		Point result[][] = new Point[2][2];
 		// 左上 [0][0]
 		int id = getTileID(left, up, left_up);
@@ -60,16 +60,18 @@ public class AutoTileUtil {
 			return 2;
 		}
 		else if (diagonal) {
+			System.out.println('3');
 			return 3;
 		}
 		else {
+			System.out.println('4');
 			return 4;
 		}
 	}
 	
 	public static Image getAutoTileImage(Image wholeImage, Image autoTileImage, Point[][] drawInfo) {
 		int half_size = autoTileImage.getWidth(null) / 2;
-		
+	
 		Graphics g = autoTileImage.getGraphics();
 		for (int i = 0; i < 2; i++) {
 			for (int j = 0; j < 2; j++) {

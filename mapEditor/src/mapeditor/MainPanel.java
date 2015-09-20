@@ -156,14 +156,14 @@ public class MainPanel extends JPanel
             for (int j = 0; j < col; j++) {
             	int chip_id = map[i][j];
             	if (autoTileDialog.isAutoTile(chip_id)) {
-            		// 端のオートタイルは閉じるタイブ、開くタイプにするならtrue
+            		// 画面端のオートタイルは閉じるタイブ、開くタイプにするならtrue
             		boolean edge = true;
             		boolean left_up = i == 0 ? edge : j == 0 ? edge : chip_id != map[i-1][j-1];
             		boolean left = j == 0 ? edge : chip_id != map[i][j-1];
-            		boolean left_down = i == 0 ? edge : j == col - 1 ? edge : chip_id != map[i-1][j+1];
-            		boolean right_up =  i == row - 1 ? edge : j == col - 1 ? edge : chip_id != map[i+1][j+1];
+            		boolean left_down = i == row - 1 ? edge : j == 0 ? edge : chip_id != map[i+1][j-1];
+            		boolean right_up =  i == 0 ? edge : j == col - 1 ? edge : chip_id != map[i-1][j+1];
             		boolean right =  j == col - 1 ? edge : chip_id != map[i][j+1];
-            		boolean right_down =  i == row - 1 ? edge : j == 0 ? edge : chip_id != map[i+1][j-1];
+            		boolean right_down =  i == row - 1 ? edge : j == col - 1 ? edge : chip_id != map[i+1][j+1];
             		boolean up =  i == 0 ? edge : chip_id != map[i-1][j];
             		boolean down =  i == row - 1 ? edge : chip_id != map[i+1][j];
             		boolean[][] around_info = {
@@ -171,6 +171,7 @@ public class MainPanel extends JPanel
             				{left, false, right},
             				{left_down, down, right_down} 
             		};
+            		System.out.println("i:"+i+", j:"+j);
                     g.drawImage(autoTileDialog.getMapChipImage(chip_id, around_info), j * CHIP_SIZE, i * CHIP_SIZE, null);
             	}else {
             		g.drawImage(paletteDialog.getMapChipImage(chip_id), j * CHIP_SIZE, i * CHIP_SIZE, null);
