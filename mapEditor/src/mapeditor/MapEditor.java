@@ -36,6 +36,9 @@ public class MapEditor extends JFrame {
 
     // マップチップパレット
     private PaletteDialog paletteDialog;
+    
+    // オートタイルマップチップパレット
+    private AutoTilePaletteDialog autoTileDialog;
 
     // メニューアイテム
     private JMenuItem newItem; // 新規作成
@@ -68,9 +71,11 @@ public class MapEditor extends JFrame {
         // マップチップパレットを作成
         paletteDialog = new PaletteDialog(this);
         paletteDialog.setVisible(true);
+        autoTileDialog = new AutoTilePaletteDialog(this);
+        autoTileDialog.setVisible(true);
 
         // メインパネルを作成
-        mainPanel = new MainPanel(paletteDialog);
+        mainPanel = new MainPanel(paletteDialog, autoTileDialog);
         // メインパネルをスクロールペインの上に乗せる
         scrollPane = new JScrollPane(mainPanel);
         Container contentPane = getContentPane();
