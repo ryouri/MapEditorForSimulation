@@ -13,13 +13,11 @@ import java.io.IOException;
 import java.util.HashMap;
 
 import javax.imageio.ImageIO;
-import javax.swing.ImageIcon;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
 public class AutoTilePaletteDialog extends JDialog {
-
 	// パネルのサイズ（単位：ピクセル）
 	public static final int WIDTH = 320;
 	public static final int HEIGHT = 64;
@@ -154,7 +152,6 @@ public class AutoTilePaletteDialog extends JDialog {
 			g.drawImage(image, dx1, dy1, dx2, dy2, 0, 0, CHIP_SIZE, CHIP_SIZE,
 					null);
 		}
-
 	}
 
 	public boolean isAutoTile(int id) {

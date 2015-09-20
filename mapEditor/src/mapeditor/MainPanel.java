@@ -1,19 +1,18 @@
 package mapeditor;
 
-import java.awt.AlphaComposite;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
-import java.awt.Graphics2D;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.nio.ByteBuffer;
 
+import javax.swing.BoxLayout;
+import javax.swing.JCheckBox;
 import javax.swing.JPanel;
+import javax.swing.border.LineBorder;
 
 /*
  * Created on 2005/12/25
@@ -29,12 +28,13 @@ public class MainPanel extends JPanel
             MouseListener,
             MouseMotionListener {
 
-    // パネルのサイズ（単位：ピクセル）
-    private static final int WIDTH = 800;
-    private static final int HEIGHT = 640;
 
     // チップセットのサイズ（単位：ピクセル）
     public static final int CHIP_SIZE = 32;
+
+    // パネルのサイズ（単位：ピクセル）
+    private static final int WIDTH = 640;
+    private static final int HEIGHT = 640;
     
     // レイヤー
     private LayerPanel[] layers;
@@ -44,6 +44,11 @@ public class MainPanel extends JPanel
     private PaletteDialog paletteDialog;
     private AutoTilePaletteDialog autoTileDialog;
 
+    // JPanel
+    private JPanel checkbox_panel;
+    private JPanel layer_panel;
+    private final int CHECKBOX_HEIGHT_OFFSET = 30;
+    
     public MainPanel(PaletteDialog paletteDialog, AutoTilePaletteDialog autoTileDialog) {
         setPreferredSize(new Dimension(WIDTH, HEIGHT));
 
@@ -53,19 +58,39 @@ public class MainPanel extends JPanel
         // パレットダイアログ
         this.paletteDialog = paletteDialog;
         this.autoTileDialog = autoTileDialog;
-
-        this.setLayout(null);
+       
         // レイヤーを初期化
         initLayer(16, 16, 3);
     }
     
-    public void initLayer(int r, int c, int l) {
+    public void initLayer(int r, int c, int lnum) {
+    	
+    	// init checkbox panel and layer panel
+        this.setLayout(null);
+        checkbox_panel = new JPanel();
+        checkbox_panel.setBounds(0, 0, lnum * 100, CHECKBOX_HEIGHT_OFFSET);
+        layer_panel = new JPanel();
+        layer_panel.setBounds(0, CHECKBOX_HEIGHT_OFFSET, c * CHIP_SIZE, CHECKBOX_HEIGHT_OFFSET + r * CHIP_SIZE);
+        layer_panel.setBorder(new LineBorder(Color.black, 1));
+        this.add(checkbox_panel);
+        this.add(layer_panel);
+        
+    	// init checkbox
+        checkbox_panel.setLayout(new BoxLayout(checkbox_panel, BoxLayout.X_AXIS));
+    	for (int i = 0; i < lnum; i++) {
+    		JCheckBox checkbox = new JCheckBox("layer"+(i+1));
+            checkbox_panel.add(checkbox);
+    	}
+    	// init layer
     	current_layer = 1;
-    	layers = new LayerPanel[l];
-    	for (int i = 0; i < l; i++) {
+    	layers = new LayerPanel[lnum];
+    	JCheckBox checkbox = new JCheckBox("layerx");
+    	layer_panel.add(checkbox);
+        layer_panel.setLayout(null);
+    	for (int i = 0; i < lnum; i++) {
     		LayerPanel layer = new LayerPanel(r, c, paletteDialog, autoTileDialog);
-    		layer.setBounds(0, 0, WIDTH, HEIGHT);
-    		this.add(layer);
+    		layer.setBounds(0, 0, c * CHIP_SIZE, r * CHIP_SIZE);
+    		layer_panel.add(layer);
     		layers[i] = layer;
     	}
     }
@@ -162,7 +187,7 @@ public class MainPanel extends JPanel
     public void mouseClicked(MouseEvent e) {
         // マウスポインタの座標から座標（マス）を求める
         int x = e.getX() / CHIP_SIZE;
-        int y = e.getY() / CHIP_SIZE;
+        int y = (e.getY() - CHECKBOX_HEIGHT_OFFSET) / CHIP_SIZE;
         
         System.out.println("Current Layer:" + current_layer);
         layers[current_layer].setIdOnMap(y, x);
@@ -189,7 +214,7 @@ public class MainPanel extends JPanel
     public void mouseDragged(MouseEvent e) {
         // マウスポインタの座標から座標（マス）を求める
         int x = e.getX() / CHIP_SIZE;
-        int y = e.getY() / CHIP_SIZE;
+        int y = (e.getY() - CHECKBOX_HEIGHT_OFFSET) / CHIP_SIZE;
 
         System.out.println("Current Layer:" + current_layer);
         layers[current_layer].setIdOnMap(y, x);
