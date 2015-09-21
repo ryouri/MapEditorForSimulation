@@ -264,7 +264,9 @@ public class MainPanel extends JPanel
 			}
 		}
 		else if (e.getSource().getClass().equals(JCheckBox.class)){
-			System.out.println(((JCheckBox) e.getSource()).getText());
+			JCheckBox target = (JCheckBox) e.getSource();
+			int target_num = Character.getNumericValue(target.getText().charAt(target.getText().length() - 1)) - 1;
+			layers[target_num].setVisible(target.isSelected());
 		}
 	}
 }
