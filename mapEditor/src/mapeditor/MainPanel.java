@@ -10,9 +10,14 @@ import java.io.File;
 import java.nio.ByteBuffer;
 
 import javax.swing.BoxLayout;
+import javax.swing.ButtonGroup;
 import javax.swing.JCheckBox;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 import javax.swing.border.LineBorder;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 /*
  * Created on 2005/12/25
@@ -26,19 +31,21 @@ import javax.swing.border.LineBorder;
 public class MainPanel extends JPanel
         implements
             MouseListener,
-            MouseMotionListener {
+            MouseMotionListener,
+            ChangeListener {
 
 
     // チップセットのサイズ（単位：ピクセル）
     public static final int CHIP_SIZE = 32;
 
-    // パネルのサイズ（単位：ピクセル）
+    // メインパネルのサイズ（単位：ピクセル）
     private static final int WIDTH = 640;
     private static final int HEIGHT = 640;
     
     // レイヤー
     private LayerPanel[] layers;
     private int current_layer;
+    private static final int LAYER_NUM = 3;
 
     // マップチップパレット
     private PaletteDialog paletteDialog;
@@ -46,8 +53,9 @@ public class MainPanel extends JPanel
 
     // JPanel
     private JPanel checkbox_panel;
+    private JPanel radiobutton_panel;
     private JPanel layer_panel;
-    private final int CHECKBOX_HEIGHT_OFFSET = 30;
+    private final int PANEL_HEIGHT_OFFSET = 20;
     
     public MainPanel(PaletteDialog paletteDialog, AutoTilePaletteDialog autoTileDialog) {
         setPreferredSize(new Dimension(WIDTH, HEIGHT));
@@ -59,35 +67,56 @@ public class MainPanel extends JPanel
         this.paletteDialog = paletteDialog;
         this.autoTileDialog = autoTileDialog;
        
-        // レイヤーを初期化
-        initLayer(16, 16, 3);
+        // レイヤー, パネルを初期化
+        initLayer(16, 16);
     }
     
-    public void initLayer(int r, int c, int lnum) {
+    public void initLayer(int r, int c) {
     	
-    	// init checkbox panel and layer panel
+    	// init panels
         this.setLayout(null);
+        JLabel note_label = new JLabel("layer  order:   <--奥      手前-->");
+        note_label.setBounds(0, 0, 250, PANEL_HEIGHT_OFFSET);
+        this.add(note_label);
         checkbox_panel = new JPanel();
-        checkbox_panel.setBounds(0, 0, lnum * 100, CHECKBOX_HEIGHT_OFFSET);
-        layer_panel = new JPanel();
-        layer_panel.setBounds(0, CHECKBOX_HEIGHT_OFFSET, c * CHIP_SIZE, CHECKBOX_HEIGHT_OFFSET + r * CHIP_SIZE);
-        layer_panel.setBorder(new LineBorder(Color.black, 1));
+        checkbox_panel.setBounds(0, PANEL_HEIGHT_OFFSET, LAYER_NUM * 100, PANEL_HEIGHT_OFFSET);
         this.add(checkbox_panel);
+        radiobutton_panel = new JPanel();
+        radiobutton_panel.setBounds(0, 2 * PANEL_HEIGHT_OFFSET, LAYER_NUM * 100, PANEL_HEIGHT_OFFSET);
+        this.add(radiobutton_panel);
+        layer_panel = new JPanel();
+        layer_panel.setBounds(0, 3 * PANEL_HEIGHT_OFFSET, c * CHIP_SIZE, r * CHIP_SIZE);
+        layer_panel.setBorder(new LineBorder(Color.black, 1));
         this.add(layer_panel);
         
     	// init checkbox
         checkbox_panel.setLayout(new BoxLayout(checkbox_panel, BoxLayout.X_AXIS));
-    	for (int i = 0; i < lnum; i++) {
-    		JCheckBox checkbox = new JCheckBox("layer"+(i+1));
+        checkbox_panel.add(new JLabel("show  layer: "));
+    	for (int i = 0; i < LAYER_NUM; i++) {
+    		JCheckBox checkbox = new JCheckBox("layer"+(i+1), true);
+    		checkbox.addChangeListener(this);
             checkbox_panel.add(checkbox);
     	}
+    	// init radio button
+        radiobutton_panel.setLayout(new BoxLayout(radiobutton_panel, BoxLayout.X_AXIS));
+        ButtonGroup bg = new ButtonGroup();
+        radiobutton_panel.add(new JLabel("select layer: "));
+    	for (int i = 0; i < LAYER_NUM; i++) {
+    		JRadioButton radiobutton = new JRadioButton("layer"+(i+1));
+    		if (i == 0) {
+    			radiobutton.setSelected(true);;
+    		}
+    		radiobutton.addChangeListener(this);
+    		bg.add(radiobutton);
+            radiobutton_panel.add(radiobutton);
+    	}
     	// init layer
-    	current_layer = 1;
-    	layers = new LayerPanel[lnum];
+    	current_layer = 0;
+    	layers = new LayerPanel[LAYER_NUM];
     	JCheckBox checkbox = new JCheckBox("layerx");
     	layer_panel.add(checkbox);
         layer_panel.setLayout(null);
-    	for (int i = 0; i < lnum; i++) {
+    	for (int i = LAYER_NUM - 1; i >= 0; i--) {
     		LayerPanel layer = new LayerPanel(r, c, paletteDialog, autoTileDialog);
     		layer.setBounds(0, 0, c * CHIP_SIZE, r * CHIP_SIZE);
     		layer_panel.add(layer);
@@ -187,7 +216,7 @@ public class MainPanel extends JPanel
     public void mouseClicked(MouseEvent e) {
         // マウスポインタの座標から座標（マス）を求める
         int x = e.getX() / CHIP_SIZE;
-        int y = (e.getY() - CHECKBOX_HEIGHT_OFFSET) / CHIP_SIZE;
+        int y = (e.getY() - 3 * PANEL_HEIGHT_OFFSET) / CHIP_SIZE;
         
         System.out.println("Current Layer:" + current_layer);
         layers[current_layer].setIdOnMap(y, x);
@@ -214,7 +243,7 @@ public class MainPanel extends JPanel
     public void mouseDragged(MouseEvent e) {
         // マウスポインタの座標から座標（マス）を求める
         int x = e.getX() / CHIP_SIZE;
-        int y = (e.getY() - CHECKBOX_HEIGHT_OFFSET) / CHIP_SIZE;
+        int y = (e.getY() - 3 * PANEL_HEIGHT_OFFSET) / CHIP_SIZE;
 
         System.out.println("Current Layer:" + current_layer);
         layers[current_layer].setIdOnMap(y, x);
@@ -225,4 +254,17 @@ public class MainPanel extends JPanel
 
     public void mouseMoved(MouseEvent e) {
     }
+
+	@Override
+	public void stateChanged(ChangeEvent e) {
+		if (e.getSource().getClass().equals(JRadioButton.class)){
+			JRadioButton target = (JRadioButton) e.getSource();
+			if (target.isSelected()) {
+				current_layer = Character.getNumericValue(target.getText().charAt(target.getText().length() - 1)) - 1;
+			}
+		}
+		else if (e.getSource().getClass().equals(JCheckBox.class)){
+			System.out.println(((JCheckBox) e.getSource()).getText());
+		}
+	}
 }
