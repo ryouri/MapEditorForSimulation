@@ -131,7 +131,7 @@ public class MapEditor extends JFrame {
         }
 
         // メインパネルに新しいマップを作成
-        mainPanel.initMap(row, col);
+        //mainPanel.initMap(row, col);
 
         // パネルの大きさをマップの大きさと同じにする
         // パネルが大きいときは自動的にスクロールバーが表示される
