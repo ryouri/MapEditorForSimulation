@@ -40,7 +40,7 @@ public class AutoTilePaletteDialog extends JDialog {
 	// マップチップをチップごとに分割したイメージ
 	private Image[] mapChipImages;
 	// mapと対応するautoTileを並べたhashmap
-	private HashMap<Point, Image> imageMap;
+	private HashMap<Point3D, BufferedImage> imageMap;
 
 	// 選択されているマップチップの番号
 	private int selectedMapChipNo;
@@ -57,7 +57,7 @@ public class AutoTilePaletteDialog extends JDialog {
 		getContentPane().add(palettePanel);
 		pack();
 
-		imageMap = new HashMap<Point, Image>();
+		imageMap = new HashMap<Point3D, BufferedImage>();
 		// マップチップイメージをロード
 		loadImage();
 	}
@@ -76,11 +76,11 @@ public class AutoTilePaletteDialog extends JDialog {
 	 * 
 	 * @return マップチップイメージ
 	 */
-	public Image getMapChipImage(int i, int j) {
-		return imageMap.get(new Point(i, j));
+	public BufferedImage getMapChipImage(int i, int j, int l) {
+		return imageMap.get(new Point3D(i, j, l));
 	}
 	
-	public void updateMapChipImage(int i, int j, int[][] map) {
+	public void updateMapChipImage(int i, int j, int l, int[][] map) {
 		// 画面端のオートタイルは閉じるタイブ、開くタイプにするならtrue
         boolean edge = true;
         int row = map.length;
@@ -113,7 +113,7 @@ public class AutoTilePaletteDialog extends JDialog {
     			BufferedImage autoTile = new BufferedImage(wholeImage.getWidth(null), wholeImage.getHeight(null) / 5, BufferedImage.TYPE_INT_ARGB_PRE);
         		BufferedImage drawAutoTileImage = AutoTileUtil.getAutoTileImage(bwholeImage, autoTile,
         				AutoTileUtil.aroudTileArrayToDrawTileArray(around_info));
-        		imageMap.put(new Point(i, j), drawAutoTileImage);
+        		imageMap.put(new Point3D(i, j, l), drawAutoTileImage);
         	}
         }
 	}

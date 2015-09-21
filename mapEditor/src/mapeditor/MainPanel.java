@@ -117,7 +117,7 @@ public class MainPanel extends JPanel
     	layer_panel.add(checkbox);
         layer_panel.setLayout(null);
     	for (int i = LAYER_NUM - 1; i >= 0; i--) {
-    		LayerPanel layer = new LayerPanel(r, c, paletteDialog, autoTileDialog);
+    		LayerPanel layer = new LayerPanel(i, r, c, paletteDialog, autoTileDialog);
     		layer.setBounds(0, 0, c * CHIP_SIZE, r * CHIP_SIZE);
     		layer_panel.add(layer);
     		layers[i] = layer;
@@ -218,7 +218,6 @@ public class MainPanel extends JPanel
         int x = e.getX() / CHIP_SIZE;
         int y = (e.getY() - 3 * PANEL_HEIGHT_OFFSET) / CHIP_SIZE;
         
-        System.out.println("Current Layer:" + current_layer);
         layers[current_layer].setIdOnMap(y, x);
 
         repaint();
@@ -245,7 +244,6 @@ public class MainPanel extends JPanel
         int x = e.getX() / CHIP_SIZE;
         int y = (e.getY() - 3 * PANEL_HEIGHT_OFFSET) / CHIP_SIZE;
 
-        System.out.println("Current Layer:" + current_layer);
         layers[current_layer].setIdOnMap(y, x);
 
         repaint();
