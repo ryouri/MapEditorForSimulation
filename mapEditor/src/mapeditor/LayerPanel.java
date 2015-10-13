@@ -23,7 +23,7 @@ public class LayerPanel extends JPanel {
         this.autoTileDialog = at;
         this.setOpaque(false);
         // マップを初期化
-        initMap(16, 16, init_mapchip);
+        initMap(r, c, init_mapchip);
     }
     
     /**

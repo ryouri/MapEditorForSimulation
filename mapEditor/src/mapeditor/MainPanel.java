@@ -62,7 +62,7 @@ public class MainPanel extends JPanel
     private JPanel checkbox_panel;
     private JPanel radiobutton_panel;
     private JPanel layer_panel;
-    private final int PANEL_HEIGHT_OFFSET = 20;
+    public static final int PANEL_HEIGHT_OFFSET = 20;
     
     public MainPanel(PaletteDialog paletteDialog, AutoTilePaletteDialog autoTileDialog) {
         setPreferredSize(new Dimension(WIDTH, HEIGHT));
@@ -77,12 +77,17 @@ public class MainPanel extends JPanel
         // レイヤー, パネルを初期化
         row = 16;
         col = 16;
-        int mapchip = 2000;
-        initLayer(row, col, mapchip);
+        initLayers(row, col, -1);
     }
     
-    public void initLayer(int r, int c, int init_mapchip) {
+    public void initLayers(int r, int c, int init_mapchip) {
+    	// デフォルトのマップチップは空のマップチップ
+    	if (init_mapchip < 0){
+    		init_mapchip = 2000;
+    	}
     	
+    	// 一度上に乗ってるコンポーネントを全て削除
+    	this.removeAll();
     	// init panels
         this.setLayout(null);
         JLabel note_label = new JLabel("layer  order:   <--奥      手前-->");
@@ -145,6 +150,7 @@ public class MainPanel extends JPanel
             // 行数・列数を読み込む
             row = in.read();
             col = in.read();
+            initLayers(row, col, -1);
             // マップを読み込む レイヤー1から順に
             for (int l = 0; l < LAYER_NUM; l++){
             	layers[l].map = new int[row][col];
@@ -160,7 +166,7 @@ public class MainPanel extends JPanel
             in.close();
 
             // パネルの大きさをマップの大きさと同じにする
-            setPreferredSize(new Dimension(col * CHIP_SIZE, row * CHIP_SIZE));
+            setPreferredSize(new Dimension(col * MainPanel.CHIP_SIZE + 3 * MainPanel.PANEL_HEIGHT_OFFSET, row * MainPanel.CHIP_SIZE));
         } catch (IOException e) {
             e.printStackTrace();
         }
