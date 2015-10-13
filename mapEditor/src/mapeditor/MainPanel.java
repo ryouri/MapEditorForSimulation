@@ -81,6 +81,8 @@ public class MainPanel extends JPanel
     }
     
     public void initLayers(int r, int c, int init_mapchip) {
+    	row = r;
+    	col = c;
     	// デフォルトのマップチップは空のマップチップ
     	if (init_mapchip < 0){
     		init_mapchip = 2000;
