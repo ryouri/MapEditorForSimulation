@@ -1,5 +1,6 @@
 package mapeditor;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.event.MouseEvent;
@@ -11,7 +12,15 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
+import javax.swing.BoxLayout;
+import javax.swing.ButtonGroup;
+import javax.swing.JCheckBox;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
+import javax.swing.border.LineBorder;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 /*
  * Created on 2005/12/25
@@ -25,25 +34,36 @@ import javax.swing.JPanel;
 public class MainPanel extends JPanel
         implements
             MouseListener,
-            MouseMotionListener {
+            MouseMotionListener,
+            ChangeListener {
 
-    // パネルのサイズ（単位：ピクセル）
-    private static final int WIDTH = 800;
-    private static final int HEIGHT = 640;
 
     // チップセットのサイズ（単位：ピクセル）
     public static final int CHIP_SIZE = 32;
 
-    // マップ
-    private int[][] map;
-    // マップの大きさ（単位：マス）
+    // メインパネルのサイズ（単位：ピクセル）
+    private static final int WIDTH = 640;
+    private static final int HEIGHT = 640;
+    
+    // レイヤー
+    private LayerPanel[] layers;
+    private int current_layer;
+    private static final int LAYER_NUM = 3;
+
+    // マップサイズ
     private int row;
     private int col;
-
+    
     // マップチップパレット
     private PaletteDialog paletteDialog;
     private AutoTilePaletteDialog autoTileDialog;
 
+    // JPanel
+    private JPanel checkbox_panel;
+    private JPanel radiobutton_panel;
+    private JPanel layer_panel;
+    public static final int PANEL_HEIGHT_OFFSET = 20;
+    
     public MainPanel(PaletteDialog paletteDialog, AutoTilePaletteDialog autoTileDialog) {
         setPreferredSize(new Dimension(WIDTH, HEIGHT));
 
@@ -53,31 +73,72 @@ public class MainPanel extends JPanel
         // パレットダイアログ
         this.paletteDialog = paletteDialog;
         this.autoTileDialog = autoTileDialog;
-
-        // マップを初期化
-        initMap(16, 16);
+       
+        // レイヤー, パネルを初期化
+        row = 16;
+        col = 16;
+        initLayers(row, col, -1);
+    }
+    
+    public void initLayers(int r, int c, int init_mapchip) {
+    	// デフォルトのマップチップは空のマップチップ
+    	if (init_mapchip < 0){
+    		init_mapchip = 2000;
+    	}
+    	
+    	// 一度上に乗ってるコンポーネントを全て削除
+    	this.removeAll();
+    	// init panels
+        this.setLayout(null);
+        JLabel note_label = new JLabel("layer  order:   <--奥      手前-->");
+        note_label.setBounds(0, 0, 250, PANEL_HEIGHT_OFFSET);
+        this.add(note_label);
+        checkbox_panel = new JPanel();
+        checkbox_panel.setBounds(0, PANEL_HEIGHT_OFFSET, LAYER_NUM * 100, PANEL_HEIGHT_OFFSET);
+        this.add(checkbox_panel);
+        radiobutton_panel = new JPanel();
+        radiobutton_panel.setBounds(0, 2 * PANEL_HEIGHT_OFFSET, LAYER_NUM * 100, PANEL_HEIGHT_OFFSET);
+        this.add(radiobutton_panel);
+        layer_panel = new JPanel();
+        layer_panel.setBounds(0, 3 * PANEL_HEIGHT_OFFSET, c * CHIP_SIZE, r * CHIP_SIZE);
+        layer_panel.setBorder(new LineBorder(Color.black, 1));
+        this.add(layer_panel);
+        
+    	// init checkbox
+        checkbox_panel.setLayout(new BoxLayout(checkbox_panel, BoxLayout.X_AXIS));
+        checkbox_panel.add(new JLabel("show  layer: "));
+    	for (int i = 0; i < LAYER_NUM; i++) {
+    		JCheckBox checkbox = new JCheckBox("layer"+(i+1), true);
+    		checkbox.addChangeListener(this);
+            checkbox_panel.add(checkbox);
+    	}
+    	// init radio button
+        radiobutton_panel.setLayout(new BoxLayout(radiobutton_panel, BoxLayout.X_AXIS));
+        ButtonGroup bg = new ButtonGroup();
+        radiobutton_panel.add(new JLabel("select layer: "));
+    	for (int i = 0; i < LAYER_NUM; i++) {
+    		JRadioButton radiobutton = new JRadioButton("layer"+(i+1));
+    		if (i == 0) {
+    			radiobutton.setSelected(true);;
+    		}
+    		radiobutton.addChangeListener(this);
+    		bg.add(radiobutton);
+            radiobutton_panel.add(radiobutton);
+    	}
+    	// init layer
+    	current_layer = 0;
+    	layers = new LayerPanel[LAYER_NUM];
+    	JCheckBox checkbox = new JCheckBox("layerx");
+    	layer_panel.add(checkbox);
+        layer_panel.setLayout(null);
+    	for (int i = LAYER_NUM - 1; i >= 0; i--) {
+    		LayerPanel layer = new LayerPanel(i, r, c, init_mapchip, paletteDialog, autoTileDialog);
+    		layer.setBounds(0, 0, c * CHIP_SIZE, r * CHIP_SIZE);
+    		layer_panel.add(layer);
+    		layers[i] = layer;
+    	}
     }
 
-    /**
-     * マップを初期化する
-     * @param row 行数
-     * @param col 列数
-     */
-    public void initMap(int r, int c) {
-        row = r;
-        col = c;
-        map = new int[r][c];
-
-        // パレットで選択されているマップチップの番号を取得
-        int mapChipNo = paletteDialog.getSelectedMapChipNo();
-
-        // そのマップチップでマップを埋めつくす
-        for (int i = 0; i < r; i++) {
-            for (int j = 0; j < c; j++) {
-                map[i][j] = mapChipNo;
-            }
-        }
-    }
 
     /**
      * マップをファイルから読み込む
@@ -89,19 +150,23 @@ public class MainPanel extends JPanel
             // 行数・列数を読み込む
             row = in.read();
             col = in.read();
-            // マップを読み込む
-            map = new int[row][col];
-            for (int i = 0; i < row; i++) {
-                for (int j = 0; j < col; j++) {
-                	byte[] b = new byte[4];
-                	in.read(b, 0, 4);
-                    map[i][j] = fromBytes(b);
+            initLayers(row, col, -1);
+            // マップを読み込む レイヤー1から順に
+            for (int l = 0; l < LAYER_NUM; l++){
+            	layers[l].map = new int[row][col];
+                for (int i = 0; i < row; i++) {
+                    for (int j = 0; j < col; j++) {
+                    	byte[] b = new byte[4];
+                    	in.read(b, 0, 4);
+                        layers[l].map[i][j] = fromBytes(b);
+                    }
                 }
+                layers[l].updateAllMapChipImage();
             }
             in.close();
 
             // パネルの大きさをマップの大きさと同じにする
-            setPreferredSize(new Dimension(col * CHIP_SIZE, row * CHIP_SIZE));
+            setPreferredSize(new Dimension(col * MainPanel.CHIP_SIZE + 3 * MainPanel.PANEL_HEIGHT_OFFSET, row * MainPanel.CHIP_SIZE));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -136,31 +201,17 @@ public class MainPanel extends JPanel
             // 行数・列数を書き込む
             out.write(row);
             out.write(col);
-            // マップを書き込む
-            for (int i = 0; i < row; i++) {
-                for (int j = 0; j < col; j++) {
-                    out.write(fromInt(map[i][j]));
+            // マップを書き込む レイヤーを1から順に
+            for (int l = 0; l < LAYER_NUM; l++){
+                for (int i = 0; i < row; i++) {
+                    for (int j = 0; j < col; j++) {
+                        out.write(fromInt(layers[l].map[i][j]));
+                    }
                 }
             }
             out.close();
         } catch (IOException e) {
             e.printStackTrace();
-        }
-    }
-
-    public void paintComponent(Graphics g) {
-        super.paintComponent(g);
-
-        // map[][]に保存されているマップチップ番号をもとに画像を描画する
-        for (int i = 0; i < row; i++) {
-            for (int j = 0; j < col; j++) {
-            	int chip_id = map[i][j];
-            	if (autoTileDialog.isAutoTile(chip_id)) {
-                    g.drawImage(autoTileDialog.getMapChipImage(i, j), j * CHIP_SIZE, i * CHIP_SIZE, null);
-            	}else {
-            		g.drawImage(paletteDialog.getMapChipImage(chip_id), j * CHIP_SIZE, i * CHIP_SIZE, null);
-            	}
-            }
         }
     }
 
@@ -170,26 +221,12 @@ public class MainPanel extends JPanel
     public void mouseClicked(MouseEvent e) {
         // マウスポインタの座標から座標（マス）を求める
         int x = e.getX() / CHIP_SIZE;
-        int y = e.getY() / CHIP_SIZE;
-
-        System.out.println("Before MainPanel map[y][x] = " + map[y][x]);
-        // パレットから取得した番号をセット
-        if (x >= 0 && x < col && y >= 0 && y < row) {
-        	if (paletteDialog.lastSelected){
-        		map[y][x] = paletteDialog.getSelectedMapChipNo();
-        	} else if (autoTileDialog.lastSelected) {
-        		map[y][x] = autoTileDialog.getSelectedMapChipNo();
-        	} else {
-        		System.out.println("例外投げるべきだけどprintしちゃう！\n"
-        				+ "マップチップ選択フラグ(paletteかauto tile paletetか)がおかしい！！");;
-        	}
-        	// 周辺のautoTileを更新
-        	autoTileDialog.updateMapChipImage(y, x, map);
-
-        }
-        System.out.println("After  MainPanel map[y][x] = " + map[y][x]);
+        int y = (e.getY() - 3 * PANEL_HEIGHT_OFFSET) / CHIP_SIZE;
+        
+        layers[current_layer].setIdOnMap(y, x);
 
         repaint();
+        layers[current_layer].repaint();
     }
 
     public void mousePressed(MouseEvent e) {
@@ -210,25 +247,29 @@ public class MainPanel extends JPanel
     public void mouseDragged(MouseEvent e) {
         // マウスポインタの座標から座標（マス）を求める
         int x = e.getX() / CHIP_SIZE;
-        int y = e.getY() / CHIP_SIZE;
+        int y = (e.getY() - 3 * PANEL_HEIGHT_OFFSET) / CHIP_SIZE;
 
-        // パレットから取得した番号をセット
-        if (x >= 0 && x < col && y >= 0 && y < row) {
-        	if (paletteDialog.lastSelected){
-        		map[y][x] = paletteDialog.getSelectedMapChipNo();
-        	} else if (autoTileDialog.lastSelected) {
-        		map[y][x] = autoTileDialog.getSelectedMapChipNo();
-        	} else {
-        		System.out.println("例外投げるべきだけどprintしちゃう！\n"
-        				+ "マップチップ選択フラグ(paletteかauto tile paletetか)がおかしい！！");;
-        	}
-        	// 周辺のautoTileを更新
-        	autoTileDialog.updateMapChipImage(y, x, map);
-        }
+        layers[current_layer].setIdOnMap(y, x);
 
         repaint();
+        layers[current_layer].repaint();
     }
 
     public void mouseMoved(MouseEvent e) {
     }
+
+	@Override
+	public void stateChanged(ChangeEvent e) {
+		if (e.getSource().getClass().equals(JRadioButton.class)){
+			JRadioButton target = (JRadioButton) e.getSource();
+			if (target.isSelected()) {
+				current_layer = Character.getNumericValue(target.getText().charAt(target.getText().length() - 1)) - 1;
+			}
+		}
+		else if (e.getSource().getClass().equals(JCheckBox.class)){
+			JCheckBox target = (JCheckBox) e.getSource();
+			int target_num = Character.getNumericValue(target.getText().charAt(target.getText().length() - 1)) - 1;
+			layers[target_num].setVisible(target.isSelected());
+		}
+	}
 }
