@@ -194,22 +194,6 @@ public class MainPanel extends JPanel
 //        }
     }
 
-    public void paintComponent(Graphics g) {
-        super.paintComponent(g);
-
-        // // map[][]に保存されているマップチップ番号をもとに画像を描画する
-        // for (int i = 0; i < row; i++) {
-        //     for (int j = 0; j < col; j++) {
-        //     	int chip_id = map[i][j];
-        //     	if (autoTileDialog.isAutoTile(chip_id)) {
-        //             g.drawImage(autoTileDialog.getMapChipImage(i, j), j * CHIP_SIZE, i * CHIP_SIZE, null);
-        //     	}else {
-        //     		g.drawImage(paletteDialog.getMapChipImage(chip_id), j * CHIP_SIZE, i * CHIP_SIZE, null);
-        //     	}
-        //     }
-        // }
-    }
-
     /**
      * マウスでマップ上をクリックしたとき
      */
