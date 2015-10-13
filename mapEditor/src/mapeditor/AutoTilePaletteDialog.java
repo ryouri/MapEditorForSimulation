@@ -31,6 +31,9 @@ public class AutoTilePaletteDialog extends JDialog {
 
 	// マップチップIDのオフセット
 	private static final int OFFSET_OF_ID = 2000;
+	
+	//マップの端は閉じるタイプのオートタイルにするかどうか
+	private final boolean edge_close = false;
 
 	// 最後に選択されてるかどうか（PaletteDialogとくらべて）
 	public static boolean lastSelected;
@@ -81,8 +84,6 @@ public class AutoTilePaletteDialog extends JDialog {
 	}
 	
 	public void updateMapChipImage(int i, int j, int l, int[][] map) {
-		// 画面端のオートタイルは閉じるタイブ、開くタイプにするならtrue
-        boolean edge = true;
         int row = map.length;
         int col = map[0].length;
         int centeri = i;
@@ -94,14 +95,14 @@ public class AutoTilePaletteDialog extends JDialog {
         		int chip_id = map[i][j];
         		if (chip_id < OFFSET_OF_ID){ continue; }
         		
-        		boolean left_up = i == 0 ? edge : j == 0 ? edge : chip_id != map[i-1][j-1];
-        		boolean left = j == 0 ? edge : chip_id != map[i][j-1];
-        		boolean left_down = i == row - 1 ? edge : j == 0 ? edge : chip_id != map[i+1][j-1];
-        		boolean right_up =  i == 0 ? edge : j == col - 1 ? edge : chip_id != map[i-1][j+1];
-        		boolean right =  j == col - 1 ? edge : chip_id != map[i][j+1];
-        		boolean right_down =  i == row - 1 ? edge : j == col - 1 ? edge : chip_id != map[i+1][j+1];
-        		boolean up =  i == 0 ? edge : chip_id != map[i-1][j];
-        		boolean down =  i == row - 1 ? edge : chip_id != map[i+1][j];
+        		boolean left_up = i == 0 ? edge_close : j == 0 ? edge_close : chip_id != map[i-1][j-1];
+        		boolean left = j == 0 ? edge_close : chip_id != map[i][j-1];
+        		boolean left_down = i == row - 1 ? edge_close : j == 0 ? edge_close : chip_id != map[i+1][j-1];
+        		boolean right_up =  i == 0 ? edge_close : j == col - 1 ? edge_close : chip_id != map[i-1][j+1];
+        		boolean right =  j == col - 1 ? edge_close : chip_id != map[i][j+1];
+        		boolean right_down =  i == row - 1 ? edge_close : j == col - 1 ? edge_close : chip_id != map[i+1][j+1];
+        		boolean up =  i == 0 ? edge_close : chip_id != map[i-1][j];
+        		boolean down =  i == row - 1 ? edge_close : chip_id != map[i+1][j];
         		boolean[][] around_info = {
         			{left_up, up, right_up}, 
         			{left, false, right},
