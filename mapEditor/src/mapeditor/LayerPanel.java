@@ -17,13 +17,13 @@ public class LayerPanel extends JPanel {
     private AutoTilePaletteDialog autoTileDialog;
     private static final int CHIP_SIZE = MainPanel.CHIP_SIZE;
    
-    public LayerPanel(int lnum, int r, int c, PaletteDialog pt, AutoTilePaletteDialog at) {
+    public LayerPanel(int lnum, int r, int c, int init_mapchip, PaletteDialog pt, AutoTilePaletteDialog at) {
         this.layer_num = lnum;
         this.paletteDialog = pt;
         this.autoTileDialog = at;
         this.setOpaque(false);
         // マップを初期化
-        initMap(16, 16);
+        initMap(16, 16, init_mapchip);
     }
     
     /**
@@ -31,14 +31,14 @@ public class LayerPanel extends JPanel {
      * @param row 行数
      * @param col 列数
      */
-    public void initMap(int r, int c) {
+    public void initMap(int r, int c, int init_mapchip) {
         row = r;
         col = c;
         map = new int[r][c];
 
         // パレットで選択されているマップチップの番号を取得
         // int mapChipNo = paletteDialog.getSelectedMapChipNo();
-        int mapChipNo = 2000;
+        int mapChipNo = init_mapchip;
         
         // そのマップチップでマップを埋めつくす
         for (int i = 0; i < r; i++) {
@@ -46,6 +46,7 @@ public class LayerPanel extends JPanel {
                 map[i][j] = mapChipNo;
             }
         }
+        updateAllMapChipImage();
     }
    
     public void setIdOnMap(int y, int x) {
@@ -67,6 +68,17 @@ public class LayerPanel extends JPanel {
         }
         System.out.println("After map["+y+"]["+x+"] = " + map[y][x]);
 
+    }
+   
+    /**
+     * 全てのauto tileのイメージを更新する
+     */
+    public void updateAllMapChipImage() {
+    	for (int y = 0; y < row; y++){
+    		for (int x = 0; x < col; x++){
+    			autoTileDialog.updateMapChipImage(y, x, layer_num, map);
+    		}
+    	}
     }
 
     @Override
