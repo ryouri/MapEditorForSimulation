@@ -7,6 +7,9 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 
 import javax.swing.BoxLayout;
@@ -47,6 +50,10 @@ public class MainPanel extends JPanel
     private int current_layer;
     private static final int LAYER_NUM = 3;
 
+    // マップサイズ
+    private int row;
+    private int col;
+    
     // マップチップパレット
     private PaletteDialog paletteDialog;
     private AutoTilePaletteDialog autoTileDialog;
@@ -55,7 +62,7 @@ public class MainPanel extends JPanel
     private JPanel checkbox_panel;
     private JPanel radiobutton_panel;
     private JPanel layer_panel;
-    private final int PANEL_HEIGHT_OFFSET = 20;
+    public static final int PANEL_HEIGHT_OFFSET = 20;
     
     public MainPanel(PaletteDialog paletteDialog, AutoTilePaletteDialog autoTileDialog) {
         setPreferredSize(new Dimension(WIDTH, HEIGHT));
@@ -68,11 +75,19 @@ public class MainPanel extends JPanel
         this.autoTileDialog = autoTileDialog;
        
         // レイヤー, パネルを初期化
-        initLayer(16, 16);
+        row = 16;
+        col = 16;
+        initLayers(row, col, -1);
     }
     
-    public void initLayer(int r, int c) {
+    public void initLayers(int r, int c, int init_mapchip) {
+    	// デフォルトのマップチップは空のマップチップ
+    	if (init_mapchip < 0){
+    		init_mapchip = 2000;
+    	}
     	
+    	// 一度上に乗ってるコンポーネントを全て削除
+    	this.removeAll();
     	// init panels
         this.setLayout(null);
         JLabel note_label = new JLabel("layer  order:   <--奥      手前-->");
@@ -117,7 +132,7 @@ public class MainPanel extends JPanel
     	layer_panel.add(checkbox);
         layer_panel.setLayout(null);
     	for (int i = LAYER_NUM - 1; i >= 0; i--) {
-    		LayerPanel layer = new LayerPanel(i, r, c, paletteDialog, autoTileDialog);
+    		LayerPanel layer = new LayerPanel(i, r, c, init_mapchip, paletteDialog, autoTileDialog);
     		layer.setBounds(0, 0, c * CHIP_SIZE, r * CHIP_SIZE);
     		layer_panel.add(layer);
     		layers[i] = layer;
@@ -130,27 +145,31 @@ public class MainPanel extends JPanel
      * @param mapFile
      */
     public void loadMap(File mapFile) {
-//        try {
-//            FileInputStream in = new FileInputStream(mapFile);
-//            // 行数・列数を読み込む
-//            row = in.read();
-//            col = in.read();
-//            // マップを読み込む
-//            map = new int[row][col];
-//            for (int i = 0; i < row; i++) {
-//                for (int j = 0; j < col; j++) {
-//                	byte[] b = new byte[4];
-//                	in.read(b, 0, 4);
-//                    map[i][j] = fromBytes(b);
-//                }
-//            }
-//            in.close();
-//
-//            // パネルの大きさをマップの大きさと同じにする
-//            setPreferredSize(new Dimension(col * CHIP_SIZE, row * CHIP_SIZE));
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
+        try {
+            FileInputStream in = new FileInputStream(mapFile);
+            // 行数・列数を読み込む
+            row = in.read();
+            col = in.read();
+            initLayers(row, col, -1);
+            // マップを読み込む レイヤー1から順に
+            for (int l = 0; l < LAYER_NUM; l++){
+            	layers[l].map = new int[row][col];
+                for (int i = 0; i < row; i++) {
+                    for (int j = 0; j < col; j++) {
+                    	byte[] b = new byte[4];
+                    	in.read(b, 0, 4);
+                        layers[l].map[i][j] = fromBytes(b);
+                    }
+                }
+                layers[l].updateAllMapChipImage();
+            }
+            in.close();
+
+            // パネルの大きさをマップの大きさと同じにする
+            setPreferredSize(new Dimension(col * MainPanel.CHIP_SIZE + 3 * MainPanel.PANEL_HEIGHT_OFFSET, row * MainPanel.CHIP_SIZE));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -175,23 +194,25 @@ public class MainPanel extends JPanel
      * @param mapFile マップファイル
      */
     public void saveMap(File mapFile) {
-//        // マップはバイナリファイルにする
-//        // マップの1マスを1バイトとする
-//        try {
-//            FileOutputStream out = new FileOutputStream(mapFile);
-//            // 行数・列数を書き込む
-//            out.write(row);
-//            out.write(col);
-//            // マップを書き込む
-//            for (int i = 0; i < row; i++) {
-//                for (int j = 0; j < col; j++) {
-//                    out.write(fromInt(map[i][j]));
-//                }
-//            }
-//            out.close();
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
+        // マップはバイナリファイルにする
+        // マップの1マスを1バイトとする
+        try {
+            FileOutputStream out = new FileOutputStream(mapFile);
+            // 行数・列数を書き込む
+            out.write(row);
+            out.write(col);
+            // マップを書き込む レイヤーを1から順に
+            for (int l = 0; l < LAYER_NUM; l++){
+                for (int i = 0; i < row; i++) {
+                    for (int j = 0; j < col; j++) {
+                        out.write(fromInt(layers[l].map[i][j]));
+                    }
+                }
+            }
+            out.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
